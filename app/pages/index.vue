@@ -200,7 +200,12 @@ const handleApproveSelected = () => {
             {{ selectedItemsLabel }}
           </p>
           <div class="flex flex-wrap gap-3">
-            <UButton size="sm" variant="ghost" color="gray" @click="clearSelection">
+            <UButton
+              size="sm"
+              variant="ghost"
+              color="gray"
+              @click="clearSelection"
+            >
               Limpar seleção
             </UButton>
             <UButton
@@ -230,11 +235,13 @@ const handleApproveSelected = () => {
               <UCheckbox
                 :model-value="isSelected(row.original.id)"
                 :disabled="row.original.status === 'APPROVED'"
-                @update:model-value="() =>
-                  toggleRowSelection(
-                    row.original.id,
-                    row.original.status === 'APPROVED'
-                  )"
+                @update:model-value="
+                  () =>
+                    toggleRowSelection(
+                      row.original.id,
+                      row.original.status === 'APPROVED'
+                    )
+                "
               />
             </div>
           </template>
@@ -262,9 +269,8 @@ const handleApproveSelected = () => {
           <template #actions-cell="{ row }">
             <UButton
               size="xs"
-              color="emerald"
               :disabled="row.original.status === 'APPROVED'"
-              @click="() => approveItem(row.original.id)"
+              @click="store.approveItem(row.id)"
             >
               Aprovar
             </UButton>
