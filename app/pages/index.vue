@@ -1,40 +1,20 @@
 <script setup lang="ts">
-import { ref } from "vue";
+import { computed } from "vue";
+import { storeToRefs } from "pinia";
 import type { ColumnDef } from "@tanstack/vue-table";
+import {
+  useApprovalStore,
+  type ApprovalItem,
+  type ApprovalStatus,
+} from "~/stores/approval";
 
-type ApprovalStatus = "PENDING" | "APPROVED";
 type FilterStatus = "ALL" | ApprovalStatus;
 
-type ApprovalRow = {
-  id: number;
-  name: string;
-  type: string;
-  status: ApprovalStatus;
-};
+const approvalStore = useApprovalStore();
+const { approvals, selectedIds, searchTerm, statusFilter } =
+  storeToRefs(approvalStore);
 
-const approvalRequests = ref<ApprovalRow[]>([
-  { id: 1, name: "Banco Aurora", type: "Conta digital PJ", status: "PENDING" },
-  {
-    id: 2,
-    name: "Grupo Horizonte",
-    type: "Cartão corporativo",
-    status: "PENDING",
-  },
-  {
-    id: 3,
-    name: "Comércio Prisma",
-    type: "Antecipação de recebíveis",
-    status: "APPROVED",
-  },
-  {
-    id: 4,
-    name: "Cooperativa Atlas",
-    type: "Financiamento agrícola",
-    status: "APPROVED",
-  },
-]);
-
-const columns: ColumnDef<ApprovalRow>[] = [
+const columns: ColumnDef<ApprovalItem>[] = [
   {
     id: "select",
     header: "",
@@ -73,6 +53,106 @@ const statusBadgeVariants: Record<
 
 const statusBadge = (status: ApprovalStatus) =>
   statusBadgeVariants[status] ?? { label: status, color: "gray" };
+
+const filteredApprovals = computed(() => {
+  const normalizedSearch = searchTerm.value.trim().toLowerCase();
+
+  return approvals.value.filter((approval) => {
+    const matchesStatus =
+      statusFilter.value === "ALL" || approval.status === statusFilter.value;
+    const matchesSearch =
+      !normalizedSearch ||
+      approval.name.toLowerCase().includes(normalizedSearch) ||
+      approval.type.toLowerCase().includes(normalizedSearch);
+
+    return matchesStatus && matchesSearch;
+  });
+});
+
+const summaryCounts = computed(() => {
+  const pending = approvals.value.filter(
+    (approval) => approval.status === "PENDING"
+  ).length;
+  const approved = approvals.value.filter(
+    (approval) => approval.status === "APPROVED"
+  ).length;
+
+  return {
+    pending,
+    approved,
+    total: approvals.value.length,
+  };
+});
+
+const selectableIds = computed(() =>
+  filteredApprovals.value
+    .filter((approval) => approval.status !== "APPROVED")
+    .map((approval) => approval.id)
+);
+
+const headerCheckboxState = computed(() => {
+  if (!selectableIds.value.length) {
+    return false;
+  }
+
+  const selectedInView = selectableIds.value.filter((id) =>
+    selectedIds.value.includes(id)
+  ).length;
+
+  if (!selectedInView) {
+    return false;
+  }
+
+  if (selectedInView === selectableIds.value.length) {
+    return true;
+  }
+
+  return "indeterminate";
+});
+
+const selectedItemsLabel = computed(
+  () => `${selectedIds.value.length} item(s) selecionado(s)`
+);
+
+const toggleSelectAll = () => {
+  if (!selectableIds.value.length) {
+    return;
+  }
+
+  const selectableSet = new Set(selectableIds.value);
+  const selectedInView = selectedIds.value.filter((id) =>
+    selectableSet.has(id)
+  );
+
+  if (selectedInView.length === selectableIds.value.length) {
+    selectedIds.value = selectedIds.value.filter(
+      (id) => !selectableSet.has(id)
+    );
+  } else {
+    selectedIds.value = Array.from(
+      new Set([...selectedIds.value, ...selectableIds.value])
+    );
+  }
+};
+
+const toggleRowSelection = (id: number, isDisabled: boolean) => {
+  if (isDisabled) {
+    return;
+  }
+
+  if (selectedIds.value.includes(id)) {
+    selectedIds.value = selectedIds.value.filter(
+      (selectedId) => selectedId !== id
+    );
+    return;
+  }
+
+  selectedIds.value = [...selectedIds.value, id];
+};
+
+const clearSelection = () => {
+  selectedIds.value = [];
+};
 </script>
 
 <template>
@@ -89,15 +169,21 @@ const statusBadge = (status: ApprovalStatus) =>
     <div class="grid gap-4 md:grid-cols-3">
       <UCard>
         <p class="text-sm text-gray-500">Pendentes</p>
-        <p class="text-3xl font-semibold text-emerald-600">3</p>
+        <p class="text-3xl font-semibold text-emerald-600">
+          {{ summaryCounts.pending }}
+        </p>
       </UCard>
       <UCard>
         <p class="text-sm text-gray-500">Aprovados</p>
-        <p class="text-3xl font-semibold text-emerald-600">2</p>
+        <p class="text-3xl font-semibold text-emerald-600">
+          {{ summaryCounts.approved }}
+        </p>
       </UCard>
       <UCard>
         <p class="text-sm text-gray-500">Total</p>
-        <p class="text-3xl font-semibold text-emerald-600">1</p>
+        <p class="text-3xl font-semibold text-emerald-600">
+          {{ summaryCounts.total }}
+        </p>
       </UCard>
     </div>
 
@@ -107,10 +193,12 @@ const statusBadge = (status: ApprovalStatus) =>
           <UInput
             icon="i-heroicons-magnifying-glass-20-solid"
             placeholder="Buscar por nome ou tipo"
+            v-model="searchTerm"
           />
           <USelect
             placeholder="Status"
             class="md:w-56"
+            v-model="statusFilter"
             :items="statusOptions"
           />
         </div>
@@ -120,10 +208,12 @@ const statusBadge = (status: ApprovalStatus) =>
         <div
           class="flex flex-col gap-3 md:flex-row md:items-center md:justify-between"
         >
-          <p class="text-sm text-gray-500">1 item(s) selecionado(s)</p>
+          <p class="text-sm text-gray-500">
+            {{ selectedItemsLabel }}
+          </p>
           <div class="flex flex-wrap gap-3">
-            <UButton size="sm" variant="ghost" color="gray">
-              Limpar selecao
+            <UButton size="sm" variant="ghost" color="gray" @click="clearSelection">
+              Limpar seleção
             </UButton>
             <UButton size="sm" icon="i-heroicons-check-circle">
               Aprovar selecionados
@@ -131,16 +221,28 @@ const statusBadge = (status: ApprovalStatus) =>
           </div>
         </div>
 
-        <UTable :columns="columns" :data="approvalRequests">
+        <UTable :columns="columns" :data="filteredApprovals">
           <template #select-header>
             <div class="flex justify-center">
-              <UCheckbox />
+              <UCheckbox
+                :model-value="headerCheckboxState"
+                :disabled="!selectableIds.length"
+                @update:model-value="toggleSelectAll"
+              />
             </div>
           </template>
 
           <template #select-cell="{ row }">
             <div class="flex justify-center">
-              <UCheckbox :disabled="row.original.status === 'APPROVED'" />
+              <UCheckbox
+                :model-value="selectedIds.includes(row.original.id)"
+                :disabled="row.original.status === 'APPROVED'"
+                @update:model-value="() =>
+                  toggleRowSelection(
+                    row.original.id,
+                    row.original.status === 'APPROVED'
+                  )"
+              />
             </div>
           </template>
 
