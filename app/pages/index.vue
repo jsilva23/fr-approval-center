@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed } from "vue";
+import { computed, onMounted } from "vue";
 import { storeToRefs } from "pinia";
 import type { ColumnDef } from "@tanstack/vue-table";
 import {
@@ -8,8 +8,6 @@ import {
   type ApprovalStatus,
 } from "~/stores/approval";
 
-type FilterStatus = "ALL" | ApprovalStatus;
-
 const approvalStore = useApprovalStore();
 const {
   approvals,
@@ -17,9 +15,23 @@ const {
   pendingCount,
   approvedCount,
   selectedIds,
+  searchTerm,
+  statusFilter,
 } = storeToRefs(approvalStore);
-const { searchTerm, statusFilter } = storeToRefs(approvalStore);
-const { setSearchTerm, setStatusFilter, isSelected } = approvalStore;
+const {
+  initialize,
+  setSearchTerm,
+  setStatusFilter,
+  isSelected,
+  toggleSelection,
+  clearSelection,
+  approveItem,
+  approveMany,
+} = approvalStore;
+
+onMounted(() => {
+  initialize();
+});
 
 const columns: ColumnDef<ApprovalItem>[] = [
   {
@@ -44,7 +56,7 @@ const columns: ColumnDef<ApprovalItem>[] = [
   },
 ];
 
-const statusOptions: { label: string; value: FilterStatus }[] = [
+const statusOptions: { label: string; value: ApprovalStatus | "ALL" }[] = [
   { label: "Todos", value: "ALL" },
   { label: "Pendentes", value: "PENDING" },
   { label: "Aprovados", value: "APPROVED" },
@@ -118,19 +130,14 @@ const toggleRowSelection = (id: number, isDisabled: boolean) => {
   if (isDisabled) {
     return;
   }
-
-  if (isSelected(id)) {
-    selectedIds.value = selectedIds.value.filter(
-      (selectedId) => selectedId !== id
-    );
-    return;
-  }
-
-  selectedIds.value = [...selectedIds.value, id];
+  toggleSelection(id);
 };
 
-const clearSelection = () => {
-  selectedIds.value = [];
+const handleApproveSelected = () => {
+  if (!selectedIds.value.length) {
+    return;
+  }
+  approveMany(selectedIds.value);
 };
 </script>
 
@@ -196,7 +203,12 @@ const clearSelection = () => {
             <UButton size="sm" variant="ghost" color="gray" @click="clearSelection">
               Limpar seleção
             </UButton>
-            <UButton size="sm" icon="i-heroicons-check-circle">
+            <UButton
+              size="sm"
+              icon="i-heroicons-check-circle"
+              :disabled="!selectedIds.length"
+              @click="handleApproveSelected"
+            >
               Aprovar selecionados
             </UButton>
           </div>
@@ -252,6 +264,7 @@ const clearSelection = () => {
               size="xs"
               color="emerald"
               :disabled="row.original.status === 'APPROVED'"
+              @click="() => approveItem(row.original.id)"
             >
               Aprovar
             </UButton>
