@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onMounted } from "vue";
+import { computed, onMounted, ref } from "vue";
 import { storeToRefs } from "pinia";
 import type { ColumnDef } from "@tanstack/vue-table";
 import {
@@ -29,9 +29,7 @@ const {
   approveMany,
 } = approvalStore;
 
-onMounted(() => {
-  initialize();
-});
+const isConfirmModalOpen = ref(false);
 
 const columns: ColumnDef<ApprovalItem>[] = [
   {
@@ -137,8 +135,24 @@ const handleApproveSelected = () => {
   if (!selectedIds.value.length) {
     return;
   }
-  approveMany(selectedIds.value);
+  isConfirmModalOpen.value = true;
 };
+
+const closeConfirmModal = () => {
+  isConfirmModalOpen.value = false;
+};
+
+const confirmApproveSelected = () => {
+  if (!selectedIds.value.length) {
+    return;
+  }
+  approveMany(selectedIds.value);
+  closeConfirmModal();
+};
+
+onMounted(() => {
+  initialize();
+});
 </script>
 
 <template>
@@ -281,5 +295,33 @@ const handleApproveSelected = () => {
         </UTable>
       </div>
     </UCard>
+    <UModal v-model:open="isConfirmModalOpen">
+      <template #content>
+        <div class="space-y-4 p-4 sm:p-6">
+          <div class="space-y-2">
+            <h3 class="text-lg font-semibold text-gray-500">
+              Confirmar aprovação
+            </h3>
+            <p class="text-gray-600">
+              Deseja realmente aprovar {{ selectedIds.length }} item(s)
+              selecionado(s)?
+            </p>
+          </div>
+          <div class="flex justify-end gap-2">
+            <UButton variant="ghost" color="neutral" @click="closeConfirmModal">
+              Cancelar
+            </UButton>
+            <UButton
+              color="primary"
+              icon="i-heroicons-check-circle"
+              :disabled="!selectedIds.length"
+              @click="confirmApproveSelected"
+            >
+              Confirmar
+            </UButton>
+          </div>
+        </div>
+      </template>
+    </UModal>
   </div>
 </template>
