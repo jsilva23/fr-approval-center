@@ -1,4 +1,4 @@
-import { ref } from "vue";
+import { computed, ref } from "vue";
 import { defineStore } from "pinia";
 
 export type ApprovalStatus = "PENDING" | "APPROVED";
@@ -42,10 +42,47 @@ export const useApprovalStore = defineStore("approval-center", () => {
   const searchTerm = ref("");
   const statusFilter = ref<StatusFilter>("ALL");
 
+  const filteredItems = computed(() => {
+    const term = searchTerm.value.trim().toLowerCase();
+    return approvals.value.filter((item) => {
+      const matchesTerm =
+        term.length === 0 ||
+        item.name.toLowerCase().includes(term) ||
+        item.type.toLowerCase().includes(term);
+      const matchesStatus =
+        statusFilter.value === "ALL" || item.status === statusFilter.value;
+      return matchesTerm && matchesStatus;
+    });
+  });
+
+  const pendingCount = computed(
+    () => approvals.value.filter((item) => item.status === "PENDING").length
+  );
+
+  const approvedCount = computed(
+    () => approvals.value.filter((item) => item.status === "APPROVED").length
+  );
+
+  const isSelected = (id: number) => selectedIds.value.includes(id);
+
+  const setSearchTerm = (term: string) => {
+    searchTerm.value = term;
+  };
+
+  const setStatusFilter = (status: StatusFilter) => {
+    statusFilter.value = status;
+  };
+
   return {
     approvals,
+    filteredItems,
+    pendingCount,
+    approvedCount,
     selectedIds,
     searchTerm,
     statusFilter,
+    setSearchTerm,
+    setStatusFilter,
+    isSelected,
   };
 });

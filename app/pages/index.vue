@@ -11,8 +11,15 @@ import {
 type FilterStatus = "ALL" | ApprovalStatus;
 
 const approvalStore = useApprovalStore();
-const { approvals, selectedIds, searchTerm, statusFilter } =
-  storeToRefs(approvalStore);
+const {
+  approvals,
+  filteredItems,
+  pendingCount,
+  approvedCount,
+  selectedIds,
+} = storeToRefs(approvalStore);
+const { searchTerm, statusFilter } = storeToRefs(approvalStore);
+const { setSearchTerm, setStatusFilter, isSelected } = approvalStore;
 
 const columns: ColumnDef<ApprovalItem>[] = [
   {
@@ -54,38 +61,10 @@ const statusBadgeVariants: Record<
 const statusBadge = (status: ApprovalStatus) =>
   statusBadgeVariants[status] ?? { label: status, color: "gray" };
 
-const filteredApprovals = computed(() => {
-  const normalizedSearch = searchTerm.value.trim().toLowerCase();
-
-  return approvals.value.filter((approval) => {
-    const matchesStatus =
-      statusFilter.value === "ALL" || approval.status === statusFilter.value;
-    const matchesSearch =
-      !normalizedSearch ||
-      approval.name.toLowerCase().includes(normalizedSearch) ||
-      approval.type.toLowerCase().includes(normalizedSearch);
-
-    return matchesStatus && matchesSearch;
-  });
-});
-
-const summaryCounts = computed(() => {
-  const pending = approvals.value.filter(
-    (approval) => approval.status === "PENDING"
-  ).length;
-  const approved = approvals.value.filter(
-    (approval) => approval.status === "APPROVED"
-  ).length;
-
-  return {
-    pending,
-    approved,
-    total: approvals.value.length,
-  };
-});
+const totalCount = computed(() => approvals.value.length);
 
 const selectableIds = computed(() =>
-  filteredApprovals.value
+  filteredItems.value
     .filter((approval) => approval.status !== "APPROVED")
     .map((approval) => approval.id)
 );
@@ -140,7 +119,7 @@ const toggleRowSelection = (id: number, isDisabled: boolean) => {
     return;
   }
 
-  if (selectedIds.value.includes(id)) {
+  if (isSelected(id)) {
     selectedIds.value = selectedIds.value.filter(
       (selectedId) => selectedId !== id
     );
@@ -170,19 +149,19 @@ const clearSelection = () => {
       <UCard>
         <p class="text-sm text-gray-500">Pendentes</p>
         <p class="text-3xl font-semibold text-emerald-600">
-          {{ summaryCounts.pending }}
+          {{ pendingCount }}
         </p>
       </UCard>
       <UCard>
         <p class="text-sm text-gray-500">Aprovados</p>
         <p class="text-3xl font-semibold text-emerald-600">
-          {{ summaryCounts.approved }}
+          {{ approvedCount }}
         </p>
       </UCard>
       <UCard>
         <p class="text-sm text-gray-500">Total</p>
         <p class="text-3xl font-semibold text-emerald-600">
-          {{ summaryCounts.total }}
+          {{ totalCount }}
         </p>
       </UCard>
     </div>
@@ -193,13 +172,15 @@ const clearSelection = () => {
           <UInput
             icon="i-heroicons-magnifying-glass-20-solid"
             placeholder="Buscar por nome ou tipo"
-            v-model="searchTerm"
+            :model-value="searchTerm"
+            @update:model-value="setSearchTerm"
           />
           <USelect
             placeholder="Status"
             class="md:w-56"
-            v-model="statusFilter"
+            :model-value="statusFilter"
             :items="statusOptions"
+            @update:model-value="setStatusFilter"
           />
         </div>
       </template>
@@ -221,7 +202,7 @@ const clearSelection = () => {
           </div>
         </div>
 
-        <UTable :columns="columns" :data="filteredApprovals">
+        <UTable :columns="columns" :data="filteredItems">
           <template #select-header>
             <div class="flex justify-center">
               <UCheckbox
@@ -235,7 +216,7 @@ const clearSelection = () => {
           <template #select-cell="{ row }">
             <div class="flex justify-center">
               <UCheckbox
-                :model-value="selectedIds.includes(row.original.id)"
+                :model-value="isSelected(row.original.id)"
                 :disabled="row.original.status === 'APPROVED'"
                 @update:model-value="() =>
                   toggleRowSelection(
