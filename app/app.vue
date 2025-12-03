@@ -1,7 +1,8 @@
 <template>
   <UApp>
-    <div>
-      <h1 class="text-xl">Hello, Vue.js!</h1>
-    </div>
+    <NuxtLoadingIndicator color="#059669" :height="3" />
+    <NuxtLayout>
+      <NuxtPage />
+    </NuxtLayout>
   </UApp>
 </template>
