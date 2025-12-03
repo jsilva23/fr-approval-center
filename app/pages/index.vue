@@ -200,12 +200,7 @@ const handleApproveSelected = () => {
             {{ selectedItemsLabel }}
           </p>
           <div class="flex flex-wrap gap-3">
-            <UButton
-              size="sm"
-              variant="ghost"
-              color="gray"
-              @click="clearSelection"
-            >
+            <UButton size="sm" variant="ghost" @click="clearSelection">
               Limpar seleção
             </UButton>
             <UButton
@@ -259,7 +254,9 @@ const handleApproveSelected = () => {
 
           <template #status-cell="{ row }">
             <UBadge
-              :color="statusBadge(row.original.status).color"
+              :color="
+                row.original.status === 'APPROVED' ? 'primary' : 'warning'
+              "
               variant="soft"
             >
               {{ statusBadge(row.original.status).label }}
@@ -270,7 +267,7 @@ const handleApproveSelected = () => {
             <UButton
               size="xs"
               :disabled="row.original.status === 'APPROVED'"
-              @click="store.approveItem(row.id)"
+              @click="approvalStore.approveItem(row.original.id)"
             >
               Aprovar
             </UButton>
