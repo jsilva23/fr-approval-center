@@ -99,10 +99,6 @@ const headerCheckboxState = computed(() => {
   return "indeterminate";
 });
 
-const selectedItemsLabel = computed(
-  () => `${selectedIds.value.length} item(s) selecionado(s)`
-);
-
 const toggleSelectAll = () => {
   if (!selectableIds.value.length) {
     return;
@@ -166,67 +162,29 @@ onMounted(() => {
       </p>
     </div>
 
-    <div class="grid gap-4 md:grid-cols-3">
-      <UCard>
-        <p class="text-sm text-gray-500">Pendentes</p>
-        <p class="text-3xl font-semibold text-emerald-600">
-          {{ pendingCount }}
-        </p>
-      </UCard>
-      <UCard>
-        <p class="text-sm text-gray-500">Aprovados</p>
-        <p class="text-3xl font-semibold text-emerald-600">
-          {{ approvedCount }}
-        </p>
-      </UCard>
-      <UCard>
-        <p class="text-sm text-gray-500">Total</p>
-        <p class="text-3xl font-semibold text-emerald-600">
-          {{ totalCount }}
-        </p>
-      </UCard>
-    </div>
+    <ApprovalSummary
+      :pending="pendingCount"
+      :approved="approvedCount"
+      :total="totalCount"
+    />
 
     <UCard>
       <template #header>
-        <div class="flex flex-col gap-4 md:flex-row md:items-end">
-          <UInput
-            icon="i-heroicons-magnifying-glass-20-solid"
-            placeholder="Buscar por nome ou tipo"
-            :model-value="searchTerm"
-            @update:model-value="setSearchTerm"
-          />
-          <USelect
-            placeholder="Status"
-            class="md:w-56"
-            :model-value="statusFilter"
-            :items="statusOptions"
-            @update:model-value="setStatusFilter"
-          />
-        </div>
+        <ApprovalFilters
+          :search-term="searchTerm"
+          :status-filter="statusFilter"
+          :status-options="statusOptions"
+          @update:search-term="setSearchTerm"
+          @update:status-filter="setStatusFilter"
+        />
       </template>
 
       <div class="space-y-4">
-        <div
-          class="flex flex-col gap-3 md:flex-row md:items-center md:justify-between"
-        >
-          <p class="text-sm text-gray-500">
-            {{ selectedItemsLabel }}
-          </p>
-          <div class="flex flex-wrap gap-3">
-            <UButton size="sm" variant="ghost" @click="clearSelection">
-              Limpar seleção
-            </UButton>
-            <UButton
-              size="sm"
-              icon="i-heroicons-check-circle"
-              :disabled="!selectedIds.length"
-              @click="handleApproveSelected"
-            >
-              Aprovar selecionados
-            </UButton>
-          </div>
-        </div>
+        <ApprovalSelectionActions
+          :selected-count="selectedIds.length"
+          @clear="clearSelection"
+          @approve="handleApproveSelected"
+        />
 
         <UTable :columns="columns" :data="filteredItems">
           <template #select-header>
@@ -299,7 +257,7 @@ onMounted(() => {
       <template #content>
         <div class="space-y-4 p-4 sm:p-6">
           <div class="space-y-2">
-            <h3 class="text-lg font-semibold text-gray-500">
+            <h3 class="text-lg font-semibold text-gray-900">
               Confirmar aprovação
             </h3>
             <p class="text-gray-600">
