@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onMounted, ref } from "vue";
+import { computed, onMounted } from "vue";
 import { storeToRefs } from "pinia";
 import type { ColumnDef } from "@tanstack/vue-table";
 import {
@@ -7,6 +7,7 @@ import {
   type ApprovalItem,
   type ApprovalStatus,
 } from "~/stores/approval";
+import { useApprovalSelection } from "~/composables/useApprovalSelection";
 
 const approvalStore = useApprovalStore();
 const {
@@ -14,7 +15,6 @@ const {
   filteredItems,
   pendingCount,
   approvedCount,
-  selectedIds,
   searchTerm,
   statusFilter,
 } = storeToRefs(approvalStore);
@@ -23,12 +23,19 @@ const {
   setSearchTerm,
   setStatusFilter,
   isSelected,
-  toggleSelection,
   clearSelection,
-  approveMany,
 } = approvalStore;
-
-const isConfirmModalOpen = ref(false);
+const {
+  selectedIds,
+  selectableIds,
+  headerCheckboxState,
+  toggleSelectAll,
+  toggleRowSelection,
+  handleApproveSelected,
+  isConfirmModalOpen,
+  closeConfirmModal,
+  confirmApproveSelected,
+} = useApprovalSelection(approvalStore);
 
 const columns: ColumnDef<ApprovalItem>[] = [
   {
@@ -71,79 +78,6 @@ const statusBadge = (status: ApprovalStatus) =>
   statusBadgeVariants[status] ?? { label: status, color: "gray" };
 
 const totalCount = computed(() => approvals.value.length);
-
-const selectableIds = computed(() =>
-  filteredItems.value
-    .filter((approval) => approval.status !== "APPROVED")
-    .map((approval) => approval.id)
-);
-
-const headerCheckboxState = computed(() => {
-  if (!selectableIds.value.length) {
-    return false;
-  }
-
-  const selectedInView = selectableIds.value.filter((id) =>
-    selectedIds.value.includes(id)
-  ).length;
-
-  if (!selectedInView) {
-    return false;
-  }
-
-  if (selectedInView === selectableIds.value.length) {
-    return true;
-  }
-
-  return "indeterminate";
-});
-
-const toggleSelectAll = () => {
-  if (!selectableIds.value.length) {
-    return;
-  }
-
-  const selectableSet = new Set(selectableIds.value);
-  const selectedInView = selectedIds.value.filter((id) =>
-    selectableSet.has(id)
-  );
-
-  if (selectedInView.length === selectableIds.value.length) {
-    selectedIds.value = selectedIds.value.filter(
-      (id) => !selectableSet.has(id)
-    );
-  } else {
-    selectedIds.value = Array.from(
-      new Set([...selectedIds.value, ...selectableIds.value])
-    );
-  }
-};
-
-const toggleRowSelection = (id: number, isDisabled: boolean) => {
-  if (isDisabled) {
-    return;
-  }
-  toggleSelection(id);
-};
-
-const handleApproveSelected = () => {
-  if (!selectedIds.value.length) {
-    return;
-  }
-  isConfirmModalOpen.value = true;
-};
-
-const closeConfirmModal = () => {
-  isConfirmModalOpen.value = false;
-};
-
-const confirmApproveSelected = () => {
-  if (!selectedIds.value.length) {
-    return;
-  }
-  approveMany(selectedIds.value);
-  closeConfirmModal();
-};
 
 onMounted(() => {
   initialize();
