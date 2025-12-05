@@ -154,7 +154,7 @@ onMounted(() => {
 <template>
   <div class="space-y-8">
     <div class="space-y-2">
-      <h1 class="text-3xl font-semibold text-gray-900">
+      <h1 class="text-3xl font-semibold">
         Central de Aprovações
       </h1>
       <p class="text-gray-600 max-w-3xl">
@@ -215,7 +215,7 @@ onMounted(() => {
 
           <template #name-cell="{ row }">
             <div>
-              <p class="font-semibold text-gray-900">
+              <p class="font-semibold">
                 {{ row.original.name }}
               </p>
               <p class="text-sm text-gray-500">
