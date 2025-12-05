@@ -2,11 +2,8 @@
 import { computed, onMounted } from "vue";
 import { storeToRefs } from "pinia";
 import type { ColumnDef } from "@tanstack/vue-table";
-import {
-  useApprovalStore,
-  type ApprovalItem,
-  type ApprovalStatus,
-} from "~/stores/approval";
+import type { ApprovalItem, ApprovalStatus } from "~/types/approval";
+import { useApprovalStore } from "~/stores/approval";
 import { useApprovalSelection } from "~/composables/useApprovalSelection";
 
 const approvalStore = useApprovalStore();

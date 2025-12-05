@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { ApprovalStatus } from "~/stores/approval";
+import type { ApprovalStatus } from "~/types/approval";
 
 type StatusOption = { label: string; value: ApprovalStatus | "ALL" };
 
