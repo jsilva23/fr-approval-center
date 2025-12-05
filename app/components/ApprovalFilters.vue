@@ -3,7 +3,7 @@ import type { ApprovalStatus } from "~/stores/approval";
 
 type StatusOption = { label: string; value: ApprovalStatus | "ALL" };
 
-const props = defineProps<{
+defineProps<{
   searchTerm: string;
   statusFilter: ApprovalStatus | "ALL";
   statusOptions: StatusOption[];

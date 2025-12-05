@@ -34,7 +34,7 @@ const defaultItems: ApprovalItem[] = [
     type: "Financiamento agrícola",
     status: "APPROVED",
   },
-  //more 15 items
+  // more 15 items
   { id: 5, name: "Indústria Sol", type: "Conta digital PJ", status: "PENDING" },
   {
     id: 6,
@@ -210,9 +210,9 @@ export const useApprovalStore = defineStore("approval-center", () => {
   const approveMany = (ids: number[]) => {
     const targetIds = new Set(ids);
     approvals.value = approvals.value.map((approval) =>
-      targetIds.has(approval.id)
-        ? { ...approval, status: "APPROVED" }
-        : approval
+      targetIds.has(approval.id) ?
+          { ...approval, status: "APPROVED" } :
+        approval
     );
     persist();
     selectedIds.value = selectedIds.value.filter(

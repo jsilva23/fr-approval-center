@@ -25,7 +25,6 @@ const {
   isSelected,
   toggleSelection,
   clearSelection,
-  approveItem,
   approveMany,
 } = approvalStore;
 
