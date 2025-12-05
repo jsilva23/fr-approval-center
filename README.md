@@ -1,60 +1,64 @@
-# Nuxt Starter Template
+# FR Approval Center
 
-[![Nuxt UI](https://img.shields.io/badge/Made%20with-Nuxt%20UI-00DC82?logo=nuxt&labelColor=020420)](https://ui.nuxt.com)
+Aplicação Nuxt 3 que simula uma central de aprovações, permitindo filtrar, selecionar e aprovar múltiplos itens de maneira rápida.
 
-Use this template to get started with [Nuxt UI](https://ui.nuxt.com) quickly.
+## Decisões técnicas
 
-- [Live demo](https://starter-template.nuxt.dev/)
-- [Documentation](https://ui.nuxt.com/docs/getting-started/installation/nuxt)
+- **Nuxt 3 + Vue 3 Composition API** – a Composition API facilita o compartilhamento de lógica reativa entre componentes (filtros, seleção, persistência). Nuxt entrega SSR opcional, roteamento automático em `app/pages` e integrações prontas para Vue 3.
+- **Pinia** – estado global simples e tipado para armazenar aprovações, filtros e seleção. Pinia integra bem com Nuxt (auto-imports) e facilita persistência no `localStorage`.
+- **TanStack Table (ColumnDef)** – usamos os tipos da TanStack Table para descrever colunas da tabela (`ColumnDef<ApprovalItem>`), garantindo segurança de tipos e abrindo espaço para evoluir com recursos como ordenação/agrupamento sem refatorações profundas.
+- **Nuxt UI (UCard, UTable, UModal, etc.)** – acelera a criação de componentes responsivos com tema consistente e acessível.
+- **Persistência em `localStorage`** – mantém o estado de aprovações/seleções no navegador, evitando perda de contexto ao recarregar a página.
 
-<a href="https://starter-template.nuxt.dev/" target="_blank">
-  <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="https://ui.nuxt.com/assets/templates/nuxt/starter-dark.png">
-    <source media="(prefers-color-scheme: light)" srcset="https://ui.nuxt.com/assets/templates/nuxt/starter-light.png">
-    <img alt="Nuxt Starter Template" src="https://ui.nuxt.com/assets/templates/nuxt/starter-light.png">
-  </picture>
-</a>
+## Estrutura do projeto
 
-> The starter template for Vue is on https://github.com/nuxt-ui-templates/starter-vue.
-
-## Quick Start
-
-```bash [Terminal]
-npm create nuxt@latest -- -t github:nuxt-ui-templates/starter
+```
+.
+├─ app/
+│  ├─ components/          # Componentes UI isolados (filtros, sumário, modal)
+│  ├─ pages/               # Páginas Nuxt; `index.vue` contém o fluxo principal
+│  └─ stores/              # Stores Pinia (ex.: `approval.ts`)
+├─ public/                 # Assets estáticos servidos como estão
+├─ nuxt.config.ts          # Configuração Nuxt e módulos
+├─ package.json            # Scripts NPM e dependências
+└─ README.md
 ```
 
-## Deploy your own
+## Requisitos
 
-[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-name=starter&repository-url=https%3A%2F%2Fgithub.com%2Fnuxt-ui-templates%2Fstarter&demo-image=https%3A%2F%2Fui.nuxt.com%2Fassets%2Ftemplates%2Fnuxt%2Fstarter-dark.png&demo-url=https%3A%2F%2Fstarter-template.nuxt.dev%2F&demo-title=Nuxt%20Starter%20Template&demo-description=A%20minimal%20template%20to%20get%20started%20with%20Nuxt%20UI.)
+- Node.js 18+ (recomendado)
+- npm 9+ (ou pnpm/yarn se preferir adaptar os comandos)
 
-## Setup
+## Instalação
 
-Make sure to install the dependencies:
+Instale as dependências:
 
 ```bash
 npm install
 ```
 
-## Development Server
+## Execução em desenvolvimento
 
-Start the development server on `http://localhost:3000`:
+Inicie o servidor em `http://localhost:3000`:
 
 ```bash
 npm run dev
 ```
 
-## Production
+O Nuxt oferece hot module replacement; alterações em `app/` são aplicadas automaticamente.
 
-Build the application for production:
+## Build e preview
+
+Gerar build de produção:
 
 ```bash
 npm run build
 ```
 
-Locally preview production build:
+Fazer preview local da build:
 
 ```bash
 npm run preview
 ```
 
-Check out the [deployment documentation](https://nuxt.com/docs/getting-started/deployment) for more information.
+Pronto! Com isso você tem um panorama das decisões técnicas, estrutura e passos para rodar o projeto.
