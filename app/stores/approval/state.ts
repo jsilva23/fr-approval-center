@@ -1,5 +1,4 @@
-import { ref } from "vue";
-import type { Ref } from "vue";
+import { ref, type Ref } from "vue";
 import type { ApprovalItem, ApprovalStatus } from "~/types/approval";
 import { cloneDefaultApprovals } from "~/data/defaultApprovalItems";
 

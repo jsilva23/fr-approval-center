@@ -1,5 +1,4 @@
-import { computed } from "vue";
-import type { Ref } from "vue";
+import { computed, type Ref } from "vue";
 import type { ApprovalItem } from "~/types/approval";
 import type { StatusFilter } from "./state";
 
